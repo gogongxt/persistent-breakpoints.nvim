@@ -19,6 +19,13 @@ end
 
 M.get_bps_path = function ()
 	local path_sep = M.get_path_sep()
+
+	-- If filename is configured, use it directly (portable across directories)
+	if cfg.filename then
+		return cfg.save_dir .. path_sep .. cfg.filename .. '.json'
+	end
+
+	-- Otherwise, use absolute path (original behavior)
 	local base_filename = vim.fn.getcwd()
 
 	if jit and jit.os == 'Windows' then
