@@ -51,6 +51,10 @@ M.write_bps = function (path, bps)
 	bps = bps or {}
 	assert(type(bps) == 'table', "The persistent breakpoints should be stored in a table. Usually it is not the user's problem if you did not call the write_bps function explicitly.")
 
+	-- Lazily create directory only when saving breakpoints
+	local dir = vim.fn.fnamemodify(path, ':h')
+	vim.fn.mkdir(dir, "p")
+
 	local fp = io.open(path, 'w+')
 	if fp == nil then
 		vim.notify('Failed to save checkpoints. File: ' .. vim.fn.expand('%'), 'WARN')

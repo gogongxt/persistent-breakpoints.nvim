@@ -11,7 +11,7 @@ M.setup = function(_cfg)
 		cfg[key] = val
 	end
 	inmem_bps.bps = utils.load_bps(utils.get_bps_path()) -- {'filename':breakpoints_table}
-	utils.create_path(cfg.save_dir)
+	-- Don't create directory on setup, create it lazily when saving breakpoints
 	if tmp_config.load_breakpoints_event ~= nil then
 		local aug = vim.api.nvim_create_augroup("persistent-breakpoints-load-breakpoint", {
 			clear = true,
