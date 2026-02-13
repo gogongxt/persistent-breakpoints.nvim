@@ -43,6 +43,7 @@ keymap("n", "<YourKey1>", "<cmd>lua require('persistent-breakpoints.api').toggle
 keymap("n", "<YourKey2>", "<cmd>lua require('persistent-breakpoints.api').set_conditional_breakpoint()<cr>", opts)
 keymap("n", "<YourKey3>", "<cmd>lua require('persistent-breakpoints.api').clear_all_breakpoints()<cr>", opts)
 keymap("n", "<YourKey4>", "<cmd>lua require('persistent-breakpoints.api').set_log_point()<cr>", opts)
+keymap("n", "<YourKey5>", "<cmd>lua require('persistent-breakpoints.api').load_all_breakpoints()<cr>", opts)
 ```
 
 ### **:PBToggleBreakpoint** 
@@ -53,6 +54,8 @@ Like `:lua require('dap').set_breakpoint(vim.fn.input('[Condition] > '))`
 Like `:lua require('dap').set_breakpoint(nil, nil, vim.fn.input('[Message] > '))`
 ### **:PBClearAllBreakpoints**
 Like `:lua require('dap').clear_breakpoints()`
+### **:PBLoadAllBreakpoints**
+Like `:lua require('dap').load_all_breakpoints()`
 
 
 ## Issue

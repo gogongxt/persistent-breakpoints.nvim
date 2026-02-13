@@ -100,6 +100,54 @@ F.reload_breakpoints = function ()
 	F.load_breakpoints()
 end
 
+--- Load all breakpoints from the JSON file for the current workspace.
+--- This will open files (in background buffers) that have saved breakpoints
+--- and set the breakpoints on them, even if they were not opened before.
+F.load_all_breakpoints = function()
+	-- Ensure inmemory_bps is loaded from file
+	if inmemory_bps.bps == nil then
+		inmemory_bps.bps = utils.load_bps(utils.get_bps_path())
+		inmemory_bps.changed = false
+	end
+	local fbps = inmemory_bps.bps
+	if not fbps or vim.tbl_isempty(fbps) then
+		return
+	end
+	local loaded_count = 0
+	local bp_count = 0
+	for storage_key, bps in pairs(fbps) do
+		if not vim.tbl_isempty(bps) then
+			-- Convert relative path back to absolute path if needed
+			local file_path = utils.to_absolute_path(storage_key)
+			-- Check if file exists
+			if vim.fn.filereadable(file_path) == 1 then
+				-- Get or create buffer for the file (without opening in window)
+				local buf_id = vim.fn.bufadd(file_path)
+				-- Load the buffer content if not loaded yet
+				if not vim.api.nvim_buf_is_loaded(buf_id) then
+					vim.fn.bufload(buf_id)
+				end
+				-- Set breakpoints on the buffer
+				for _, bp in pairs(bps) do
+					local line = bp.line
+					local opts = {
+						condition = bp.condition,
+						log_message = bp.logMessage,
+						hit_condition = bp.hitCondition
+					}
+					breakpoints.set(opts, buf_id, line)
+					if config.on_load_breakpoint ~= nil then
+						config.on_load_breakpoint(opts, buf_id, line)
+					end
+					bp_count = bp_count + 1
+				end
+				loaded_count = loaded_count + 1
+			end
+		end
+	end
+	vim.notify(string.format('Loaded %d breakpoints from %d files', bp_count, loaded_count))
+end
+
 local perf_data = {}
 
 local M = {}
