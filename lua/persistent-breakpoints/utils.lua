@@ -17,6 +17,41 @@ M.get_path_sep = function()
 	end
 end
 
+-- Convert absolute path to relative path (relative to cwd)
+-- Only used when `filename` is configured for portable breakpoints
+M.to_relative_path = function(abs_path)
+	if not cfg.filename or not abs_path or abs_path == "" then
+		return abs_path
+	end
+	local cwd = vim.fn.getcwd()
+	local path_sep = M.get_path_sep()
+	-- Ensure cwd ends with separator for proper matching
+	if cwd:sub(-1) ~= path_sep then
+		cwd = cwd .. path_sep
+	end
+	-- Check if abs_path starts with cwd
+	if abs_path:sub(1, #cwd) == cwd then
+		return abs_path:sub(#cwd + 1)
+	end
+	-- If not under cwd, return absolute path as-is
+	return abs_path
+end
+
+-- Convert relative path back to absolute path
+-- Only used when `filename` is configured for portable breakpoints
+M.to_absolute_path = function(path)
+	if not cfg.filename or not path or path == "" then
+		return path
+	end
+	local path_sep = M.get_path_sep()
+	-- If path is already absolute, return as-is
+	if path:sub(1, 1) == path_sep or (jit and jit.os == "Windows" and path:match("^%a:[/\\]")) then
+		return path
+	end
+	-- Convert relative path to absolute
+	return vim.fn.getcwd() .. path_sep .. path
+end
+
 M.get_bps_path = function ()
 	local path_sep = M.get_path_sep()
 

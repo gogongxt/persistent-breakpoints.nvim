@@ -12,7 +12,9 @@ F.breakpoints_changed_in_current_buffer = function()
 	if #current_buf_file_name == 0 then
 		return
 	end
-	inmemory_bps.bps[current_buf_file_name] = current_buf_breakpoints
+	-- Use relative path when filename is configured for portability
+	local storage_key = utils.to_relative_path(current_buf_file_name)
+	inmemory_bps.bps[storage_key] = current_buf_breakpoints
 	inmemory_bps.changed = true
 	local write_ok = utils.write_bps(utils.get_bps_path(),inmemory_bps.bps)
 	inmemory_bps.changed = not write_ok
@@ -45,7 +47,9 @@ F.store_breakpoints = function (clear)
 	if clear == nil then
 		local tmp_fbps = vim.deepcopy(inmemory_bps.bps)
 		for bufid, bufbps in pairs(breakpoints.get()) do
-			tmp_fbps[vim.api.nvim_buf_get_name(bufid)] = bufbps
+			-- Use relative path when filename is configured for portability
+			local storage_key = utils.to_relative_path(vim.api.nvim_buf_get_name(bufid))
+			tmp_fbps[storage_key] = bufbps
 		end
 		utils.write_bps(utils.get_bps_path(),tmp_fbps)
 	else
@@ -65,14 +69,16 @@ F.load_breakpoints = function()
 	-- Find the new loaded buffer.
 	for _, buf in ipairs(vim.api.nvim_list_bufs()) do
 		local file_name = vim.api.nvim_buf_get_name(buf)
+		-- Convert to relative path for lookup when filename is configured
+		local lookup_key = utils.to_relative_path(file_name)
 		-- if bbps[buf] != nil => this file's breakpoints have been loaded.
-		-- if vim.tbl_isempty(bps[file_name] or {}) => This file have no saved breakpoints.
-		if bbps[buf] == nil and vim.tbl_isempty(fbps[file_name] or {}) == false then
-			new_loaded_bufs[file_name] = buf
+		-- if vim.tbl_isempty(bps[lookup_key] or {}) => This file have no saved breakpoints.
+		if bbps[buf] == nil and vim.tbl_isempty(fbps[lookup_key] or {}) == false then
+			new_loaded_bufs[lookup_key] = buf
 		end
 	end
-	for file_name, buf_id in pairs(new_loaded_bufs) do
-		for _, bp in pairs(fbps[file_name]) do
+	for lookup_key, buf_id in pairs(new_loaded_bufs) do
+		for _, bp in pairs(fbps[lookup_key]) do
 			local line = bp.line
 			local opts = {
 				condition = bp.condition,
